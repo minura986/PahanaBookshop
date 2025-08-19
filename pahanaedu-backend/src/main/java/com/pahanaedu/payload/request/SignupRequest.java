@@ -1,6 +1,7 @@
-// Pahana/pahanaedu-backend/src/main/java/com/pahanaedu/payload/request/SignupRequest.java
 package com.pahanaedu.payload.request;
 
+// No changes needed here, just confirming the structure.
+// Ensure your JSON in Postman includes all these fields.
 public class SignupRequest {
     private String username;
     private String email;
@@ -13,9 +14,9 @@ public class SignupRequest {
     private String city;
     private String postalCode;
     private String country;
-    private String profileImageUrl;
 
-    // Getters and Setters
+    // --- GETTERS AND SETTERS FOR ALL FIELDS ---
+    // (Make sure you have getters and setters for every field)
     public String getUsername() {
         return username;
     }
@@ -102,13 +103,5 @@ public class SignupRequest {
 
     public void setCountry(String country) {
         this.country = country;
-    }
-
-    public String getProfileImageUrl() {
-        return profileImageUrl;
-    }
-
-    public void setProfileImageUrl(String profileImageUrl) {
-        this.profileImageUrl = profileImageUrl;
     }
 }

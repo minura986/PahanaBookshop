@@ -11,47 +11,14 @@ public class Book {
     private String author;
     private String description;
     private double price;
+    private double cost;
     private int stock;
-    private String imageUrl;
     private String category;
-    private String subCategory; // New field for sub-category
+    private String subCategory;
+    private String imageUrl;
     private boolean active = true;
 
-    // Constructors
-    public Book() {
-    }
-
-    public Book(String title, String author, String description, double price, int stock, String imageUrl,
-            String category, String subCategory) { // Updated constructor
-        this.title = title;
-        this.author = author;
-        this.description = description;
-        this.price = price;
-        this.stock = stock;
-        this.imageUrl = imageUrl;
-        this.category = category;
-        this.subCategory = subCategory; // Set new field
-        this.active = true;
-    }
-
-    // New getter and setter for subCategory
-    public String getSubCategory() {
-        return subCategory;
-    }
-
-    public void setSubCategory(String subCategory) {
-        this.subCategory = subCategory;
-    }
-
-    // Other getters and setters...
-    public boolean isActive() {
-        return active;
-    }
-
-    public void setActive(boolean active) {
-        this.active = active;
-    }
-
+    // --- GETTERS AND SETTERS for all fields ---
     public String getId() {
         return id;
     }
@@ -92,12 +59,36 @@ public class Book {
         this.price = price;
     }
 
+    public double getCost() {
+        return cost;
+    }
+
+    public void setCost(double cost) {
+        this.cost = cost;
+    }
+
     public int getStock() {
         return stock;
     }
 
     public void setStock(int stock) {
         this.stock = stock;
+    }
+
+    public String getCategory() {
+        return category;
+    }
+
+    public void setCategory(String category) {
+        this.category = category;
+    }
+
+    public String getSubCategory() {
+        return subCategory;
+    }
+
+    public void setSubCategory(String subCategory) {
+        this.subCategory = subCategory;
     }
 
     public String getImageUrl() {
@@ -108,11 +99,11 @@ public class Book {
         this.imageUrl = imageUrl;
     }
 
-    public String getCategory() {
-        return category;
+    public boolean isActive() {
+        return active;
     }
 
-    public void setCategory(String category) {
-        this.category = category;
+    public void setActive(boolean active) {
+        this.active = active;
     }
 }

@@ -6,6 +6,7 @@ import { getReviewsByBookId } from '../services/review';
 import BookCard from '../components/BookCard';
 import Spinner from '../components/ui/Spinner';
 import CategoryFilter from '../components/CategoryFilter';
+import Pagination from '../components/ui/Pagination'; // Import the new component
 
 function useQuery() {
     return new URLSearchParams(useLocation().search);
@@ -22,6 +23,8 @@ const Books = () => {
     const [selectedCategory, setSelectedCategory] = useState(query.get('category') || 'All');
     const [selectedSubCategory, setSelectedSubCategory] = useState(query.get('subCategory') || 'All');
     const [categories, setCategories] = useState([]);
+    const [currentPage, setCurrentPage] = useState(1);
+    const BOOKS_PER_PAGE = 20;
 
     useEffect(() => {
         const fetchBooksAndReviews = async () => {
@@ -80,7 +83,11 @@ const Books = () => {
         }
 
         setFilteredBooks(result);
+        setCurrentPage(1); // Reset to first page on filter change
     }, [searchTerm, selectedCategory, selectedSubCategory, books]);
+
+    const totalPages = Math.ceil(filteredBooks.length / BOOKS_PER_PAGE);
+    const paginatedBooks = filteredBooks.slice((currentPage - 1) * BOOKS_PER_PAGE, currentPage * BOOKS_PER_PAGE);
 
     if (loading) {
         return (
@@ -137,7 +144,7 @@ const Books = () => {
                 <>
                     <div className="mb-4 flex justify-between items-center">
                         <p className="text-gray-600">
-                            Showing {filteredBooks.length} of {books.length} books
+                            Showing {paginatedBooks.length} of {filteredBooks.length} books
                         </p>
                         {selectedCategory !== 'All' && (
                             <button
@@ -150,10 +157,16 @@ const Books = () => {
                     </div>
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-8">
-                        {filteredBooks.map(book => (
+                        {paginatedBooks.map(book => (
                             <BookCard key={book.id} book={book} />
                         ))}
                     </div>
+
+                    <Pagination
+                        currentPage={currentPage}
+                        totalPages={totalPages}
+                        onPageChange={setCurrentPage}
+                    />
                 </>
             )}
         </div>

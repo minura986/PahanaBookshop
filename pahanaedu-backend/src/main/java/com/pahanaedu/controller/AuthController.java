@@ -1,4 +1,3 @@
-// Pahana/pahanaedu-backend/src/main/java/com/pahanaedu/controller/AuthController.java
 package com.pahanaedu.controller;
 
 import com.pahanaedu.model.User;
@@ -6,7 +5,6 @@ import com.pahanaedu.payload.request.LoginRequest;
 import com.pahanaedu.payload.request.SignupRequest;
 import com.pahanaedu.payload.response.MessageResponse;
 import com.pahanaedu.repository.UserRepository;
-import com.pahanaedu.security.services.ImageUploadService; // Import ImageUploadService
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,9 +15,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile; // Import MultipartFile
 
-import java.io.IOException; // Import IOException
 import java.util.Set;
 
 @CrossOrigin(origins = "*", maxAge = 3600)
@@ -36,14 +32,12 @@ public class AuthController {
         @Autowired
         PasswordEncoder encoder;
 
-        @Autowired
-        ImageUploadService imageUploadService; // Inject ImageUploadService
+        // We have temporarily removed the ImageUploadService for this test
 
         @PostMapping("/signin")
         public ResponseEntity<?> authenticateUser(@RequestBody LoginRequest loginRequest, HttpServletRequest request) {
                 Authentication authentication = authenticationManager.authenticate(
-                                new UsernamePasswordAuthenticationToken(
-                                                loginRequest.getUsername(),
+                                new UsernamePasswordAuthenticationToken(loginRequest.getUsername(),
                                                 loginRequest.getPassword()));
 
                 SecurityContextHolder.getContext().setAuthentication(authentication);
@@ -53,25 +47,18 @@ public class AuthController {
                 return ResponseEntity.ok(new MessageResponse("Login successful!"));
         }
 
+        // --- START OF SIMPLIFIED SIGNUP METHOD ---
         @PostMapping("/signup")
-        public ResponseEntity<?> registerUser(@RequestPart("user") SignupRequest signUpRequest,
-                        @RequestPart(value = "image", required = false) MultipartFile image) throws IOException { // Modified
-                                                                                                                  // to
-                                                                                                                  // accept
-                                                                                                                  // MultipartFile
+        public ResponseEntity<?> registerUser(@RequestBody SignupRequest signUpRequest) {
                 if (userRepository.existsByUsername(signUpRequest.getUsername())) {
-                        return ResponseEntity
-                                        .badRequest()
+                        return ResponseEntity.badRequest()
                                         .body(new MessageResponse("Error: Username is already taken!"));
                 }
 
                 if (userRepository.existsByEmail(signUpRequest.getEmail())) {
-                        return ResponseEntity
-                                        .badRequest()
-                                        .body(new MessageResponse("Error: Email is already in use!"));
+                        return ResponseEntity.badRequest().body(new MessageResponse("Error: Email is already in use!"));
                 }
 
-                // Create new user account
                 User user = new User(
                                 signUpRequest.getUsername(),
                                 signUpRequest.getEmail(),
@@ -87,16 +74,13 @@ public class AuthController {
                 user.setDefaultPostalCode(signUpRequest.getPostalCode());
                 user.setDefaultCountry(signUpRequest.getCountry());
 
-                // Handle profile image upload
-                if (image != null && !image.isEmpty()) {
-                        String imageUrl = imageUploadService.uploadImage(image);
-                        user.setProfileImageUrl(imageUrl);
-                }
-
+                // The image upload logic is removed for this test
                 userRepository.save(user);
 
-                return ResponseEntity.ok(new MessageResponse("User registered successfully!"));
+                return ResponseEntity
+                                .ok(new MessageResponse("User registered successfully using simplified endpoint!"));
         }
+        // --- END OF SIMPLIFIED SIGNUP METHOD ---
 
         @PostMapping("/signout")
         public ResponseEntity<?> logoutUser(HttpServletRequest request) {

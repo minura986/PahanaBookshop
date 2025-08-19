@@ -4,13 +4,14 @@ import com.pahanaedu.model.Book;
 import com.pahanaedu.repository.BookRepository;
 import com.pahanaedu.security.services.ImageUploadService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -26,9 +27,12 @@ public class BookController {
     private ImageUploadService imageUploadService;
 
     @GetMapping
-    public ResponseEntity<List<Book>> getAllBooks() {
-        return ResponseEntity.ok(bookRepository.findByActive(true));
+    public ResponseEntity<Page<Book>> getAllBooks(Pageable pageable) {
+        // This line will now work correctly
+        return ResponseEntity.ok(bookRepository.findByActive(true, pageable));
     }
+
+    // ... (rest of the controller code remains the same)
 
     @GetMapping("/{id}")
     public ResponseEntity<Book> getBookById(@PathVariable String id) {
@@ -51,28 +55,27 @@ public class BookController {
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Book> updateBook(@PathVariable String id, @RequestPart("book") Book bookDetails,
             @RequestPart(value = "image", required = false) MultipartFile image) {
-        return bookRepository.findById(id)
-                .map(book -> {
-                    book.setTitle(bookDetails.getTitle());
-                    book.setAuthor(bookDetails.getAuthor());
-                    book.setDescription(bookDetails.getDescription());
-                    book.setPrice(bookDetails.getPrice());
-                    book.setStock(bookDetails.getStock());
-                    book.setCategory(bookDetails.getCategory());
-                    book.setSubCategory(bookDetails.getSubCategory());
+        return bookRepository.findById(id).map(book -> {
+            book.setTitle(bookDetails.getTitle());
+            book.setAuthor(bookDetails.getAuthor());
+            book.setDescription(bookDetails.getDescription());
+            book.setPrice(bookDetails.getPrice());
+            book.setCost(bookDetails.getCost());
+            book.setStock(bookDetails.getStock());
+            book.setCategory(bookDetails.getCategory());
+            book.setSubCategory(bookDetails.getSubCategory());
 
-                    if (image != null && !image.isEmpty()) {
-                        try {
-                            String imageUrl = imageUploadService.uploadImage(image);
-                            book.setImageUrl(imageUrl);
-                        } catch (IOException e) {
-                            throw new RuntimeException("Failed to upload image", e);
-                        }
-                    }
+            if (image != null && !image.isEmpty()) {
+                try {
+                    String imageUrl = imageUploadService.uploadImage(image);
+                    book.setImageUrl(imageUrl);
+                } catch (IOException e) {
+                    throw new RuntimeException("Failed to upload image during update", e);
+                }
+            }
 
-                    return ResponseEntity.ok(bookRepository.save(book));
-                })
-                .orElseGet(() -> ResponseEntity.notFound().build());
+            return ResponseEntity.ok(bookRepository.save(book));
+        }).orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     @PutMapping("/{id}/status")
@@ -80,7 +83,9 @@ public class BookController {
     public ResponseEntity<Book> updateBookStatus(@PathVariable String id, @RequestBody Map<String, Boolean> status) {
         return bookRepository.findById(id)
                 .map(book -> {
-                    book.setActive(status.get("active"));
+                    if (status.containsKey("active")) {
+                        book.setActive(status.get("active"));
+                    }
                     return ResponseEntity.ok(bookRepository.save(book));
                 })
                 .orElse(ResponseEntity.notFound().build());
@@ -89,6 +94,9 @@ public class BookController {
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> deleteBook(@PathVariable String id) {
+        if (!bookRepository.existsById(id)) {
+            return ResponseEntity.notFound().build();
+        }
         bookRepository.deleteById(id);
         return ResponseEntity.noContent().build();
     }

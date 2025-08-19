@@ -1,10 +1,7 @@
-// Pahana/pahanaedu-backend/src/main/java/com/pahanaedu/model/User.java
 package com.pahanaedu.model;
 
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
-
-import java.util.HashSet;
 import java.util.Set;
 
 @Document(collection = "users")
@@ -14,7 +11,7 @@ public class User {
     private String username;
     private String email;
     private String password;
-    private Set<String> roles = new HashSet<>();
+    private Set<String> roles;
     private String firstName;
     private String lastName;
     private String phoneNumber;
@@ -24,18 +21,26 @@ public class User {
     private String defaultPostalCode;
     private String defaultCountry;
     private boolean hasPlacedOrder = false;
-    private String profileImageUrl; // New field for profile image URL
+    private String profileImageUrl;
 
+    /**
+     * A no-argument constructor is required for Spring Data MongoDB to instantiate
+     * objects.
+     */
     public User() {
     }
 
+    /**
+     * Constructor for creating a new user with essential details.
+     */
     public User(String username, String email, String password) {
         this.username = username;
         this.email = email;
         this.password = password;
     }
 
-    // Getters and Setters
+    // --- GETTERS AND SETTERS FOR ALL FIELDS ---
+
     public String getId() {
         return id;
     }
@@ -140,7 +145,7 @@ public class User {
         this.defaultCountry = defaultCountry;
     }
 
-    public boolean getHasPlacedOrder() {
+    public boolean isHasPlacedOrder() {
         return hasPlacedOrder;
     }
 
@@ -148,7 +153,6 @@ public class User {
         this.hasPlacedOrder = hasPlacedOrder;
     }
 
-    // New getter and setter for profileImageUrl
     public String getProfileImageUrl() {
         return profileImageUrl;
     }
