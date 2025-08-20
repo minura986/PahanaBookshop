@@ -36,7 +36,7 @@ const BookCard = ({ book }) => {
                 <Button
                     onClick={handleAddToCart}
                     size="sm"
-                    className="w-full flex items-center justify-center" // Added flex classes for icon alignment
+                    className="w-full flex items-center justify-center" 
                 >
                     <FaShoppingCart className="mr-1" /> Cart
                 </Button>

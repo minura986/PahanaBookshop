@@ -21,7 +21,6 @@ const Home = () => {
     ];
     const [currentSlide, setCurrentSlide] = useState(0);
     
-    // ... categories array remains the same ...
     const categories = [
         { name: 'Fiction', icon: <FaBook />, color: 'bg-red-100', iconBg: 'bg-red-300', link: `/books?category=${encodeURIComponent('Fiction')}` },
         { name: 'Non-Fiction', icon: <FaUserFriends />, color: 'bg-blue-100', iconBg: 'bg-blue-300', link: `/books?category=${encodeURIComponent('Non-Fiction')}` },
@@ -35,10 +34,8 @@ const Home = () => {
     useEffect(() => {
         const fetchBooksAndFeedbacks = async () => {
             try {
-                // Fetch the first page of 12 books to display on the home page
                 const pageData = await getBooks(0, 12);
                 
-                // **THE FIX:** The list of books is now in the 'content' property
                 const bookData = pageData.content || [];
 
                 const booksWithRatings = await Promise.all(
@@ -69,7 +66,6 @@ const Home = () => {
         fetchBooksAndFeedbacks();
     }, []);
 
-    // ... (rest of the component, including slide effect and renderBookGrid, remains the same)
     useEffect(() => {
         const slideInterval = setInterval(() => {
             setCurrentSlide((prev) => (prev + 1) % slideImages.length);
@@ -86,10 +82,10 @@ const Home = () => {
     );
 
     return (
-        // JSX structure remains the same
+        
         <div className="min-h-screen flex flex-col">
             <main className="flex-grow">
-                {/* Hero Section */}
+                {}
                 <section
                     className="relative bg-gradient-to-r from-primary to-secondary text-white py-20 flex items-center justify-center overflow-hidden"
                     style={{ backgroundImage: `url(${slideImages[currentSlide]})`, backgroundSize: 'cover', backgroundPosition: 'center', transition: 'background-image 1s ease-in-out', minHeight: '400px' }}

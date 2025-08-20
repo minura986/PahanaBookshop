@@ -53,7 +53,7 @@ const BookDetail = () => {
 
                 if (location.state?.editing) {
                     setIsEditingReview(true);
-                    // Clean the state to prevent re-triggering
+
                     navigate(location.pathname, { replace: true, state: {} });
                 }
             }

@@ -35,7 +35,7 @@ const RegisterForm = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        if (!validateStep(2)) return; // Final validation before submitting
+        if (!validateStep(2)) return; 
         if (userData.phoneNumber.length !== 10) {
             setFormError('Phone number must be 10 digits long.');
             return;
@@ -68,7 +68,7 @@ const RegisterForm = () => {
     };
 
     const prevStep = () => {
-        setFormError(''); // Clear errors when going back
+        setFormError(''); 
         setStep(step - 1);
     }
 

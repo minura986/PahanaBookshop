@@ -31,7 +31,6 @@ public class DashboardController {
         return ResponseEntity.ok(Map.of(
                 "totalBooks", bookRepository.count(),
                 "totalCustomers", userRepository.count(),
-                "totalOrders", orderRepository.count()
-        ));
+                "totalOrders", orderRepository.count()));
     }
 }

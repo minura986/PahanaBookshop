@@ -18,7 +18,6 @@ public class Book {
     private String imageUrl;
     private boolean active = true;
 
-    // --- GETTERS AND SETTERS for all fields ---
     public String getId() {
         return id;
     }

@@ -23,23 +23,16 @@ public class User {
     private boolean hasPlacedOrder = false;
     private String profileImageUrl;
 
-    /**
-     * A no-argument constructor is required for Spring Data MongoDB to instantiate
-     * objects.
-     */
     public User() {
     }
 
-    /**
-     * Constructor for creating a new user with essential details.
-     */
+    /** Constructor for creating a new user with essential details.* */
+
     public User(String username, String email, String password) {
         this.username = username;
         this.email = email;
         this.password = password;
     }
-
-    // --- GETTERS AND SETTERS FOR ALL FIELDS ---
 
     public String getId() {
         return id;

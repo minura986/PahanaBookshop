@@ -11,7 +11,7 @@ export const updateUserProfile = async (userData) => {
     return response.data;
 };
 
-// New function to update user profile with a photo
+// update user profile with a photo
 export const updateUserProfileWithPhoto = async (userData, imageFile) => {
     const formData = new FormData();
     formData.append('user', new Blob([JSON.stringify(userData)], { type: 'application/json' }));

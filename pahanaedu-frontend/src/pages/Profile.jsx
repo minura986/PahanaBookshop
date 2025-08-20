@@ -1,7 +1,7 @@
 // Pahana/pahanaedu-frontend/src/pages/Profile.jsx
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { getUserProfile, updateUserProfileWithPhoto } from '../services/user'; // Updated import
+import { getUserProfile, updateUserProfileWithPhoto } from '../services/user'; 
 import { toast } from 'react-toastify';
 import Spinner from '../components/ui/Spinner';
 import Input from '../components/ui/Input';
@@ -20,10 +20,10 @@ const Profile = () => {
         defaultCity: '',
         defaultPostalCode: '',
         defaultCountry: '',
-        profileImageUrl: '' // Add to form data state
+        profileImageUrl: '' 
     });
     const [loading, setLoading] = useState(true);
-    const [profileImage, setProfileImage] = useState(null); // State for the file object
+    const [profileImage, setProfileImage] = useState(null); 
 
     useEffect(() => {
         const loadProfileData = async () => {
@@ -67,7 +67,7 @@ const Profile = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            const updatedUser = await updateUserProfileWithPhoto(formData, profileImage); // Use new service
+            const updatedUser = await updateUserProfileWithPhoto(formData, profileImage); 
             setUser(prevState => ({ ...prevState, ...updatedUser }));
             toast.success("Profile updated successfully!");
             setProfileImage(null); // Clear selected file after upload
@@ -82,7 +82,7 @@ const Profile = () => {
 
     return (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {/* Left Column */}
+            {}
             <div className="lg:col-span-1">
                 <div className="bg-white p-6 rounded-lg shadow-md mb-8">
                     <div className="flex flex-col items-center">
@@ -102,7 +102,7 @@ const Profile = () => {
                             id="profilePhoto"
                             accept="image/*"
                             onChange={handleImageChange}
-                            className="hidden" // Hide the default input
+                            className="hidden" 
                         />
                         <label
                             htmlFor="profilePhoto"
@@ -116,7 +116,7 @@ const Profile = () => {
                                 className="w-full"
                                 onClick={() => {
                                     setFormData(prev => ({ ...prev, profileImageUrl: '' }));
-                                    setProfileImage(null); // Clear the selected file
+                                    setProfileImage(null); 
                                 }}
                             >
                                 Remove Photo

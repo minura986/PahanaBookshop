@@ -10,8 +10,7 @@ import org.springframework.stereotype.Repository;
 public interface BookRepository extends MongoRepository<Book, String> {
     Page<Book> findByActive(boolean active, Pageable pageable);
 
-    // --- START: ADD THIS NEW METHOD ---
     Page<Book> findByTitleContainingIgnoreCaseAndActiveIsTrueOrAuthorContainingIgnoreCaseAndActiveIsTrue(String title,
             String author, Pageable pageable);
-    // --- END: ADD THIS NEW METHOD ---
+
 }

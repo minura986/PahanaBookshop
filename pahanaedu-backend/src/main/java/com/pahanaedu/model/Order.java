@@ -44,8 +44,6 @@ public class Order {
         this.orderDate = new Date();
     }
 
-    // Getters and setters for all fields, including the new 'returnAddress' field.
-
     public String getId() {
         return id;
     }

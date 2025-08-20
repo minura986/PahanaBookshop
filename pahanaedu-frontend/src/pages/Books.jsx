@@ -22,7 +22,7 @@ const Books = () => {
     const [selectedCategory, setSelectedCategory] = useState(query.get('category') || 'All');
     
     // --- State for Pagination ---
-    const [currentPage, setCurrentPage] = useState(0); // API is 0-indexed
+    const [currentPage, setCurrentPage] = useState(0); 
     const [totalPages, setTotalPages] = useState(0);
 
     // Effect for fetching data when the page changes
@@ -33,10 +33,8 @@ const Books = () => {
                 // Fetch data for the current page
                 const pageData = await getBooks(currentPage);
                 
-                // CRITICAL: The book list is in pageData.content
                 const booksFromApi = pageData.content || [];
 
-                // Fetch ratings for the books on the current page
                 const booksWithRatings = await Promise.all(
                     booksFromApi.map(async (book) => {
                         try {
@@ -53,7 +51,7 @@ const Books = () => {
                 );
                 
                 setAllBooks(booksWithRatings);
-                setTotalPages(pageData.totalPages || 0); // Set total pages from API response
+                setTotalPages(pageData.totalPages || 0); 
 
             } catch (err) {
                 setError('Failed to load books. Please try again later.');
@@ -64,9 +62,8 @@ const Books = () => {
         };
 
         fetchBooksForPage();
-    }, [currentPage]); // Re-fetch when currentPage changes
+    }, [currentPage]); 
 
-    // Effect for client-side filtering when data or filters change
     useEffect(() => {
         let result = allBooks;
 
@@ -102,8 +99,6 @@ const Books = () => {
         );
     }
 
-    // --- MOCK CATEGORIES FOR FILTER ---
-    // In a real app, you might fetch these from a separate API endpoint
     const categories = ['All', 'Fiction', 'Non-Fiction', 'Science', 'Fantasy', 'Crime'];
 
     return (

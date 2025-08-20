@@ -29,7 +29,6 @@ public class Review {
         this.date = new Date();
     }
 
-    // Getters and Setters
     public String getId() {
         return id;
     }

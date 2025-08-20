@@ -32,7 +32,7 @@ const GuestOrderConfirmation = () => {
         const invoiceHTML = ReactDOMServer.renderToString(<Invoice order={order} />);
         const printWindow = window.open('', '_blank', 'height=600,width=800');
         printWindow.document.write('<html><head><title>Print Invoice</title>');
-        printWindow.document.write('<link rel="stylesheet" href="/src/index.css" type="text/css" />'); // Link to your stylesheet
+        printWindow.document.write('<link rel="stylesheet" href="/src/index.css" type="text/css" />'); 
         printWindow.document.write('</head><body>');
         printWindow.document.write(invoiceHTML);
         printWindow.document.write('</body></html>');

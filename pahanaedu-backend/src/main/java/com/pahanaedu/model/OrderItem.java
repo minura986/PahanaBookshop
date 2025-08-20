@@ -5,18 +5,17 @@ public class OrderItem {
     private String title;
     private int quantity;
     private double price;
-    private String imageUrl; // Add this line
+    private String imageUrl;
 
-    // Constructors, Getters, and Setters
     public OrderItem() {
     }
 
-    public OrderItem(String bookId, String title, int quantity, double price, String imageUrl) { // Add imageUrl
+    public OrderItem(String bookId, String title, int quantity, double price, String imageUrl) {
         this.bookId = bookId;
         this.title = title;
         this.quantity = quantity;
         this.price = price;
-        this.imageUrl = imageUrl; // Add this line
+        this.imageUrl = imageUrl;
     }
 
     public String getBookId() {
@@ -51,7 +50,6 @@ public class OrderItem {
         this.price = price;
     }
 
-    // Add getter and setter for imageUrl
     public String getImageUrl() {
         return imageUrl;
     }

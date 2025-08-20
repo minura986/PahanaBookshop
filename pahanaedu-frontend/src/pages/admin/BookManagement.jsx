@@ -25,8 +25,6 @@ const BookManagement = () => {
         }
     };
 
-    // ... other handler functions are fine ...
-
     const handleStatusToggle = async (bookId, currentStatus) => {
         try {
             await updateBookStatus(bookId, !currentStatus);
@@ -87,7 +85,7 @@ const BookManagement = () => {
                         <th className="text-left p-4">Title</th>
                         <th className="text-left p-4">Author</th>
                         <th className="text-left p-4">Category</th>
-                        <th className="text-left p-4">Sub-Category</th> {/* Add column header */}
+                        <th className="text-left p-4">Sub-Category</th> {}
                         <th className="text-left p-4">Price</th>
                         <th className="text-left p-4">Stock</th>
                         <th className="text-left p-4">Status</th>
@@ -100,7 +98,7 @@ const BookManagement = () => {
                             <td className="p-4">{book.title}</td>
                             <td className="p-4">{book.author}</td>
                             <td className="p-4">{book.category}</td>
-                            <td className="p-4">{book.subCategory}</td> {/* Add column data */}
+                            <td className="p-4">{book.subCategory}</td> {}
                             <td className="p-4">Rs.{book.price.toFixed(2)}</td>
                             <td className="p-4">{book.stock}</td>
                             <td className="p-4">

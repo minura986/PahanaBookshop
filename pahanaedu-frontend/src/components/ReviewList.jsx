@@ -3,7 +3,7 @@ import React from 'react';
 import Rating from './Rating';
 import { useAuth } from '../context/AuthContext';
 import Button from './ui/Button';
-import { Link } from 'react-router-dom'; // Import Link
+import { Link } from 'react-router-dom';
 
 const ReviewList = ({ reviews, onEdit }) => {
     const { user } = useAuth();

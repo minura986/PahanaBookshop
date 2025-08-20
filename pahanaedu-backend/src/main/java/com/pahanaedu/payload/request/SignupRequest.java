@@ -1,7 +1,5 @@
 package com.pahanaedu.payload.request;
 
-// No changes needed here, just confirming the structure.
-// Ensure your JSON in Postman includes all these fields.
 public class SignupRequest {
     private String username;
     private String email;
@@ -15,8 +13,6 @@ public class SignupRequest {
     private String postalCode;
     private String country;
 
-    // --- GETTERS AND SETTERS FOR ALL FIELDS ---
-    // (Make sure you have getters and setters for every field)
     public String getUsername() {
         return username;
     }
