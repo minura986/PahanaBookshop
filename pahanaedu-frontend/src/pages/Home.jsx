@@ -1,4 +1,3 @@
-// Pahana/pahanaedu-frontend/src/pages/Home.jsx
 import React, { useState, useEffect } from 'react';
 import { getBooks } from '../services/books';
 import { getReviewsByBookId } from '../services/review';
@@ -9,20 +8,20 @@ import { FaBook, FaUserFriends, FaChild, FaGraduationCap, FaLightbulb, FaPalette
 import FeedbackCard from '../components/FeedbackCard';
 
 const Home = () => {
-    const [allBooks, setAllBooks] = useState([]);
     const [featuredBooks, setFeaturedBooks] = useState([]);
+    const [moreBooks, setMoreBooks] = useState([]);
     const [feedbacks, setFeedbacks] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
 
-    // Slide images for the Hero Section
     const slideImages = [
         'https://res.cloudinary.com/dlevndncr/image/upload/v1752094265/library-filled-with-books-vyy56lqa9wji657j_kxqgmu.jpg',
         'https://res.cloudinary.com/dlevndncr/image/upload/v1752094734/photo-1529007196863-d07650a3f0ea_k0myss.jpg',
         'https://res.cloudinary.com/dlevndncr/image/upload/v1752095181/stack-of-books-on-a-brown-background-concept-for-world-book-day-photo_zmmy1s.jpg',
     ];
     const [currentSlide, setCurrentSlide] = useState(0);
-
+    
+    // ... categories array remains the same ...
     const categories = [
         { name: 'Fiction', icon: <FaBook />, color: 'bg-red-100', iconBg: 'bg-red-300', link: `/books?category=${encodeURIComponent('Fiction')}` },
         { name: 'Non-Fiction', icon: <FaUserFriends />, color: 'bg-blue-100', iconBg: 'bg-blue-300', link: `/books?category=${encodeURIComponent('Non-Fiction')}` },
@@ -36,34 +35,29 @@ const Home = () => {
     useEffect(() => {
         const fetchBooksAndFeedbacks = async () => {
             try {
-                const bookData = await getBooks(); //
+                // Fetch the first page of 12 books to display on the home page
+                const pageData = await getBooks(0, 12);
+                
+                // **THE FIX:** The list of books is now in the 'content' property
+                const bookData = pageData.content || [];
 
                 const booksWithRatings = await Promise.all(
                     bookData.map(async (book) => {
                         try {
-                            const reviews = await getReviewsByBookId(book.id); //
-                            const averageRating = reviews.length > 0
-                                ? reviews.reduce((sum, review) => sum + review.rating, 0) / reviews.length
-                                : 0;
+                            const reviews = await getReviewsByBookId(book.id);
+                            const averageRating = reviews.length > 0 ? reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length : 0;
                             return { ...book, averageRating, reviews };
                         } catch (reviewError) {
-                            // If fetching reviews fails, log the error and return the book with default values.
-                            // This ensures the page still loads even if reviews for one book fail.
-                            console.error(`Could not fetch reviews for book ${book.id}`, reviewError);
                             return { ...book, averageRating: 0, reviews: [] };
                         }
                     })
                 );
 
                 setFeaturedBooks(booksWithRatings.slice(0, 6));
-                setAllBooks(booksWithRatings.slice(6, 12));
+                setMoreBooks(booksWithRatings.slice(6, 12));
 
-                // Get feedbacks from the books that have reviews
-                const featuredFeedbacks = booksWithRatings
-                    .slice(0, 6)
-                    .flatMap(book => book.reviews.map(review => ({ ...review, book }))); //
-
-                setFeedbacks(featuredFeedbacks.slice(0, 3)); // Show up to 3 feedbacks
+                const featuredFeedbacks = booksWithRatings.slice(0, 6).flatMap(b => b.reviews.map(r => ({ ...r, book: b })));
+                setFeedbacks(featuredFeedbacks.slice(0, 3));
 
             } catch (err) {
                 setError('Failed to load data. Please try again later.');
@@ -75,13 +69,12 @@ const Home = () => {
         fetchBooksAndFeedbacks();
     }, []);
 
-    // Effect for automatic slide change
+    // ... (rest of the component, including slide effect and renderBookGrid, remains the same)
     useEffect(() => {
         const slideInterval = setInterval(() => {
-            setCurrentSlide((prevSlide) => (prevSlide + 1) % slideImages.length);
-        }, 5000); // Change slide every 5 seconds
-
-        return () => clearInterval(slideInterval); // Cleanup on component unmount
+            setCurrentSlide((prev) => (prev + 1) % slideImages.length);
+        }, 5000);
+        return () => clearInterval(slideInterval);
     }, [slideImages.length]);
 
     const renderBookGrid = (books) => (
@@ -93,40 +86,23 @@ const Home = () => {
     );
 
     return (
+        // JSX structure remains the same
         <div className="min-h-screen flex flex-col">
             <main className="flex-grow">
                 {/* Hero Section */}
                 <section
                     className="relative bg-gradient-to-r from-primary to-secondary text-white py-20 flex items-center justify-center overflow-hidden"
-                    style={{
-                        backgroundImage: `url(${slideImages[currentSlide]})`,
-                        backgroundSize: 'cover',
-                        backgroundPosition: 'center',
-                        transition: 'background-image 1s ease-in-out',
-                        minHeight: '400px',
-                    }}
+                    style={{ backgroundImage: `url(${slideImages[currentSlide]})`, backgroundSize: 'cover', backgroundPosition: 'center', transition: 'background-image 1s ease-in-out', minHeight: '400px' }}
                 >
                     <div className="absolute inset-0 bg-black opacity-50"></div>
                     <div className="container mx-auto px-4 text-center relative z-10">
-                        <h1 className="text-4xl md:text-6xl font-bold mb-6">
-                            Welcome to Pahana EDU Bookshop
-                        </h1>
-                        <p className="text-xl mb-8 max-w-2xl mx-auto">
-                            Discover a world of knowledge with our extensive collection of educational books
-                        </p>
-                        <Link to="/books">
-                            <button className="bg-white text-primary px-6 py-3 rounded-full font-bold text-lg hover:bg-gray-100 transition">
-                                Browse All Books
-                            </button>
-                        </Link>
+                        <h1 className="text-4xl md:text-6xl font-bold mb-6">Welcome to Pahana EDU Bookshop</h1>
+                        <p className="text-xl mb-8 max-w-2xl mx-auto">Discover a world of knowledge with our extensive collection of educational books</p>
+                        <Link to="/books"><button className="bg-white text-primary px-6 py-3 rounded-full font-bold text-lg hover:bg-gray-100 transition">Browse All Books</button></Link>
                     </div>
                     <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-2 z-20">
                         {slideImages.map((_, index) => (
-                            <button
-                                key={index}
-                                onClick={() => setCurrentSlide(index)}
-                                className={`h-2 w-2 rounded-full ${currentSlide === index ? 'bg-white' : 'bg-gray-400 opacity-75'}`}
-                            ></button>
+                            <button key={index} onClick={() => setCurrentSlide(index)} className={`h-2 w-2 rounded-full ${currentSlide === index ? 'bg-white' : 'bg-gray-400 opacity-75'}`}></button>
                         ))}
                     </div>
                 </section>
@@ -137,9 +113,7 @@ const Home = () => {
                     <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 gap-2">
                         {categories.map((cat, index) => (
                             <Link to={cat.link} key={index} className={`flex flex-col items-center justify-center p-2 rounded-lg text-center transition-transform hover:scale-105 ${cat.color}`}>
-                                <div className={`w-16 h-16 rounded-full flex items-center justify-center mb-2 ${cat.iconBg}`}>
-                                    <span className="text-3xl text-white">{cat.icon}</span>
-                                </div>
+                                <div className={`w-16 h-16 rounded-full flex items-center justify-center mb-2 ${cat.iconBg}`}><span className="text-3xl text-white">{cat.icon}</span></div>
                                 <span className="font-semibold text-gray-800 text-sm">{cat.name}</span>
                             </Link>
                         ))}
@@ -150,33 +124,18 @@ const Home = () => {
                 <section className="py-16">
                     <div className="container mx-auto px-4">
                         <h2 className="text-3xl font-bold text-center mb-12">Featured Books</h2>
-                        {loading ? (
-                            <div className="text-center">
-                                <Spinner />
-                                <p className="mt-4 text-gray-600">Loading books...</p>
-                            </div>
-                        ) : error ? (
-                            <div className="text-center">
-                                <p className="text-red-500 text-lg">{error}</p>
-                            </div>
-                        ) : (
-                            renderBookGrid(featuredBooks)
-                        )}
+                        {loading ? (<div className="text-center"><Spinner /><p className="mt-4 text-gray-600">Loading books...</p></div>) : error ? (<div className="text-center"><p className="text-red-500 text-lg">{error}</p></div>) : (renderBookGrid(featuredBooks))}
                     </div>
                 </section>
 
                 {/* More Books Section */}
-                {allBooks.length > 0 && (
+                {moreBooks.length > 0 && (
                      <section className="bg-gray-50 py-16">
                         <div className="container mx-auto px-4">
                             <h2 className="text-3xl font-bold text-center mb-12">More Books to Explore</h2>
-                             {renderBookGrid(allBooks)}
+                             {renderBookGrid(moreBooks)}
                              <div className="text-center mt-12">
-                                <Link to="/books">
-                                     <button className="bg-primary text-white px-6 py-3 rounded-md font-bold text-lg hover:bg-primary-dark transition">
-                                        View All Books
-                                     </button>
-                                 </Link>
+                                 <Link to="/books"><button className="bg-primary text-white px-6 py-3 rounded-md font-bold text-lg hover:bg-primary-dark transition">View All Books</button></Link>
                              </div>
                         </div>
                     </section>
@@ -188,9 +147,7 @@ const Home = () => {
                         <div className="container mx-auto px-4">
                             <h2 className="text-3xl font-bold text-center mb-12">From Our Readers</h2>
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                                {feedbacks.map((review) => (
-                                    <FeedbackCard key={review.id} review={review} />
-                                ))}
+                                {feedbacks.map((review) => (<FeedbackCard key={review.id} review={review} />))}
                             </div>
                         </div>
                     </section>

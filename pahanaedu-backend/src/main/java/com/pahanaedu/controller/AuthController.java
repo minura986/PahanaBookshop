@@ -32,8 +32,6 @@ public class AuthController {
         @Autowired
         PasswordEncoder encoder;
 
-        // We have temporarily removed the ImageUploadService for this test
-
         @PostMapping("/signin")
         public ResponseEntity<?> authenticateUser(@RequestBody LoginRequest loginRequest, HttpServletRequest request) {
                 Authentication authentication = authenticationManager.authenticate(
@@ -73,8 +71,6 @@ public class AuthController {
                 user.setDefaultCity(signUpRequest.getCity());
                 user.setDefaultPostalCode(signUpRequest.getPostalCode());
                 user.setDefaultCountry(signUpRequest.getCountry());
-
-                // The image upload logic is removed for this test
                 userRepository.save(user);
 
                 return ResponseEntity

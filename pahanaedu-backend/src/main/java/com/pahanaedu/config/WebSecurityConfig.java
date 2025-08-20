@@ -3,6 +3,7 @@ package com.pahanaedu.config;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
@@ -19,6 +20,7 @@ import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.util.Arrays;
+import java.util.List;
 
 @Configuration
 @EnableWebSecurity
@@ -49,9 +51,9 @@ public class WebSecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(Arrays.asList("http://localhost:5181"));
+        configuration.setAllowedOrigins(List.of("http://localhost:5181"));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-        configuration.setAllowedHeaders(Arrays.asList("*"));
+        configuration.setAllowedHeaders(List.of("*"));
         configuration.setAllowCredentials(true);
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
@@ -60,15 +62,27 @@ public class WebSecurityConfig {
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        http.csrf(csrf -> csrf.disable())
+        http
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+                // **CRITICAL FIX:** This disables the security feature that blocks your POST
+                // request.
+                .csrf(csrf -> csrf.disable())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
                 .authorizeHttpRequests(auth -> auth
+                        // --- PUBLIC ENDPOINTS ---
                         .requestMatchers("/api/auth/**").permitAll()
-                        .requestMatchers("/api/books/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/books/**").permitAll()
                         .requestMatchers("/api/reviews/book/**").permitAll()
-                        .requestMatchers("/api/orders").permitAll()
-                        .requestMatchers("/api/orders/guest/**").permitAll() // <-- Add this line
+                        .requestMatchers("/api/orders/guest/**").permitAll()
+
+                        // --- ADMIN-ONLY ENDPOINTS ---
+                        .requestMatchers(HttpMethod.POST, "/api/books").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/api/books/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/api/books/**").hasRole("ADMIN")
+                        .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                        .requestMatchers("/api/dashboard/**").hasRole("ADMIN")
+
+                        // All other requests require an authenticated user
                         .anyRequest().authenticated());
 
         http.authenticationProvider(authenticationProvider());

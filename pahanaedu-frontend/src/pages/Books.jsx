@@ -1,4 +1,3 @@
-// Pahana/pahanaedu-frontend/src/pages/Books.jsx
 import React, { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import { getBooks } from '../services/books';
@@ -6,32 +5,40 @@ import { getReviewsByBookId } from '../services/review';
 import BookCard from '../components/BookCard';
 import Spinner from '../components/ui/Spinner';
 import CategoryFilter from '../components/CategoryFilter';
-import Pagination from '../components/ui/Pagination'; // Import the new component
+import Pagination from '../components/ui/Pagination';
 
 function useQuery() {
     return new URLSearchParams(useLocation().search);
 }
 
 const Books = () => {
-    const [books, setBooks] = useState([]);
+    const [allBooks, setAllBooks] = useState([]); // Holds the current page's books
     const [filteredBooks, setFilteredBooks] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
+    
     const query = useQuery();
-    const location = useLocation();
     const [searchTerm, setSearchTerm] = useState(query.get('search') || '');
     const [selectedCategory, setSelectedCategory] = useState(query.get('category') || 'All');
-    const [selectedSubCategory, setSelectedSubCategory] = useState(query.get('subCategory') || 'All');
-    const [categories, setCategories] = useState([]);
-    const [currentPage, setCurrentPage] = useState(1);
-    const BOOKS_PER_PAGE = 20;
+    
+    // --- State for Pagination ---
+    const [currentPage, setCurrentPage] = useState(0); // API is 0-indexed
+    const [totalPages, setTotalPages] = useState(0);
 
+    // Effect for fetching data when the page changes
     useEffect(() => {
-        const fetchBooksAndReviews = async () => {
+        const fetchBooksForPage = async () => {
+            setLoading(true);
             try {
-                const bookData = await getBooks();
+                // Fetch data for the current page
+                const pageData = await getBooks(currentPage);
+                
+                // CRITICAL: The book list is in pageData.content
+                const booksFromApi = pageData.content || [];
+
+                // Fetch ratings for the books on the current page
                 const booksWithRatings = await Promise.all(
-                    bookData.map(async (book) => {
+                    booksFromApi.map(async (book) => {
                         try {
                             const reviews = await getReviewsByBookId(book.id);
                             const averageRating = reviews.length > 0
@@ -44,9 +51,10 @@ const Books = () => {
                         }
                     })
                 );
-                setBooks(booksWithRatings);
-                const uniqueCategories = ['All', ...new Set(bookData.map(book => book.category))];
-                setCategories(uniqueCategories);
+                
+                setAllBooks(booksWithRatings);
+                setTotalPages(pageData.totalPages || 0); // Set total pages from API response
+
             } catch (err) {
                 setError('Failed to load books. Please try again later.');
                 console.error(err);
@@ -54,18 +62,13 @@ const Books = () => {
                 setLoading(false);
             }
         };
-        fetchBooksAndReviews();
-    }, [location]);
 
-    useEffect(() => {
-        const params = new URLSearchParams(location.search);
-        setSearchTerm(params.get('search') || '');
-        setSelectedCategory(params.get('category') || 'All');
-        setSelectedSubCategory(params.get('subCategory') || 'All');
-    }, [location.search]);
+        fetchBooksForPage();
+    }, [currentPage]); // Re-fetch when currentPage changes
 
+    // Effect for client-side filtering when data or filters change
     useEffect(() => {
-        let result = books;
+        let result = allBooks;
 
         if (searchTerm) {
             result = result.filter(book =>
@@ -77,24 +80,17 @@ const Books = () => {
         if (selectedCategory !== 'All') {
             result = result.filter(book => book.category === selectedCategory);
         }
-        
-        if (selectedSubCategory !== 'All') {
-            result = result.filter(book => book.subCategory === selectedSubCategory);
-        }
 
         setFilteredBooks(result);
-        setCurrentPage(1); // Reset to first page on filter change
-    }, [searchTerm, selectedCategory, selectedSubCategory, books]);
+    }, [searchTerm, selectedCategory, allBooks]);
 
-    const totalPages = Math.ceil(filteredBooks.length / BOOKS_PER_PAGE);
-    const paginatedBooks = filteredBooks.slice((currentPage - 1) * BOOKS_PER_PAGE, currentPage * BOOKS_PER_PAGE);
+    const handlePageChange = (page) => {
+        setCurrentPage(page);
+    };
 
     if (loading) {
         return (
-            <div className="container mx-auto px-4 py-8 text-center">
-                <Spinner />
-                <p className="mt-4 text-gray-600">Loading books...</p>
-            </div>
+            <div className="container mx-auto px-4 py-8 text-center"><Spinner /></div>
         );
     }
 
@@ -102,71 +98,43 @@ const Books = () => {
         return (
             <div className="container mx-auto px-4 py-8 text-center">
                 <p className="text-red-500 text-lg">{error}</p>
-                <button
-                    onClick={() => window.location.reload()}
-                    className="mt-4 bg-primary text-white px-4 py-2 rounded-md hover:bg-primary-dark"
-                >
-                    Try Again
-                </button>
             </div>
         );
     }
+
+    // --- MOCK CATEGORIES FOR FILTER ---
+    // In a real app, you might fetch these from a separate API endpoint
+    const categories = ['All', 'Fiction', 'Non-Fiction', 'Science', 'Fantasy', 'Crime'];
 
     return (
         <div className="container mx-auto px-4 py-8">
             <div className="flex flex-col md:flex-row justify-between items-center mb-8">
                 <h1 className="text-3xl font-bold mb-4 md:mb-0">Book Collection</h1>
-
-                <div className="flex flex-col sm:flex-row gap-4 w-full md:w-auto">
-                    <CategoryFilter
-                        categories={categories}
-                        selectedCategory={selectedCategory}
-                        setSelectedCategory={setSelectedCategory}
-                    />
-                </div>
+                <CategoryFilter
+                    categories={categories}
+                    selectedCategory={selectedCategory}
+                    setSelectedCategory={setSelectedCategory}
+                />
             </div>
 
             {filteredBooks.length === 0 ? (
                 <div className="text-center py-12">
-                    <p className="text-gray-600 text-lg mb-4">No books found matching your criteria.</p>
-                    <button
-                        onClick={() => {
-                            setSearchTerm('');
-                            setSelectedCategory('All');
-                            setSelectedSubCategory('All');
-                        }}
-                        className="bg-primary text-white px-4 py-2 rounded-md hover:bg-primary-dark"
-                    >
-                        Reset Filters
-                    </button>
+                    <p className="text-gray-600 text-lg">No books found matching your criteria.</p>
                 </div>
             ) : (
                 <>
-                    <div className="mb-4 flex justify-between items-center">
-                        <p className="text-gray-600">
-                            Showing {paginatedBooks.length} of {filteredBooks.length} books
-                        </p>
-                        {selectedCategory !== 'All' && (
-                            <button
-                                onClick={() => setSelectedCategory('All')}
-                                className="text-primary hover:underline"
-                            >
-                                Clear Category Filter
-                            </button>
-                        )}
-                    </div>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-8">
-                        {paginatedBooks.map(book => (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-8">
+                        {filteredBooks.map(book => (
                             <BookCard key={book.id} book={book} />
                         ))}
                     </div>
-
-                    <Pagination
-                        currentPage={currentPage}
-                        totalPages={totalPages}
-                        onPageChange={setCurrentPage}
-                    />
+                    {totalPages > 1 &&
+                        <Pagination
+                            currentPage={currentPage}
+                            totalPages={totalPages}
+                            onPageChange={handlePageChange}
+                        />
+                    }
                 </>
             )}
         </div>

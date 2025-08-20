@@ -26,14 +26,13 @@ public class BookController {
     @Autowired
     private ImageUploadService imageUploadService;
 
+    /* Gets a paginated list of all active books for public viewing. */
     @GetMapping
     public ResponseEntity<Page<Book>> getAllBooks(Pageable pageable) {
-        // This line will now work correctly
         return ResponseEntity.ok(bookRepository.findByActive(true, pageable));
     }
 
-    // ... (rest of the controller code remains the same)
-
+    /* Gets a single active book by its ID. */
     @GetMapping("/{id}")
     public ResponseEntity<Book> getBookById(@PathVariable String id) {
         Optional<Book> book = bookRepository.findById(id);
@@ -42,42 +41,66 @@ public class BookController {
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
+    /* Creates a new book. This is an admin-only endpoint. */
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<Book> createBook(@RequestPart("book") Book book, @RequestPart("image") MultipartFile image)
+    public ResponseEntity<Book> createBook(@RequestPart("book") Book bookDetails,
+            @RequestPart("image") MultipartFile image)
             throws IOException {
-        String imageUrl = imageUploadService.uploadImage(image);
-        book.setImageUrl(imageUrl);
-        return ResponseEntity.ok(bookRepository.save(book));
+        Book newBook = new Book();
+
+        newBook.setTitle(bookDetails.getTitle());
+        newBook.setAuthor(bookDetails.getAuthor());
+        newBook.setDescription(bookDetails.getDescription());
+        newBook.setPrice(bookDetails.getPrice());
+        newBook.setCost(bookDetails.getCost());
+        newBook.setStock(bookDetails.getStock());
+        newBook.setCategory(bookDetails.getCategory());
+        newBook.setSubCategory(bookDetails.getSubCategory());
+        newBook.setActive(bookDetails.isActive());
+
+        if (image != null && !image.isEmpty()) {
+            String imageUrl = imageUploadService.uploadImage(image);
+            newBook.setImageUrl(imageUrl);
+        } else {
+        }
+
+        // Save the newly created and populated book object
+        Book savedBook = bookRepository.save(newBook);
+
+        return ResponseEntity.ok(savedBook);
     }
 
+    /* Updates an existing book. This is an admin-only endpoint. */
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Book> updateBook(@PathVariable String id, @RequestPart("book") Book bookDetails,
             @RequestPart(value = "image", required = false) MultipartFile image) {
-        return bookRepository.findById(id).map(book -> {
-            book.setTitle(bookDetails.getTitle());
-            book.setAuthor(bookDetails.getAuthor());
-            book.setDescription(bookDetails.getDescription());
-            book.setPrice(bookDetails.getPrice());
-            book.setCost(bookDetails.getCost());
-            book.setStock(bookDetails.getStock());
-            book.setCategory(bookDetails.getCategory());
-            book.setSubCategory(bookDetails.getSubCategory());
+        return bookRepository.findById(id).map(bookToUpdate -> {
+            bookToUpdate.setTitle(bookDetails.getTitle());
+            bookToUpdate.setAuthor(bookDetails.getAuthor());
+            bookToUpdate.setDescription(bookDetails.getDescription());
+            bookToUpdate.setPrice(bookDetails.getPrice());
+            bookToUpdate.setCost(bookDetails.getCost());
+            bookToUpdate.setStock(bookDetails.getStock());
+            bookToUpdate.setCategory(bookDetails.getCategory());
+            bookToUpdate.setSubCategory(bookDetails.getSubCategory());
+            bookToUpdate.setActive(bookDetails.isActive());
 
             if (image != null && !image.isEmpty()) {
                 try {
                     String imageUrl = imageUploadService.uploadImage(image);
-                    book.setImageUrl(imageUrl);
+                    bookToUpdate.setImageUrl(imageUrl);
                 } catch (IOException e) {
                     throw new RuntimeException("Failed to upload image during update", e);
                 }
             }
 
-            return ResponseEntity.ok(bookRepository.save(book));
+            return ResponseEntity.ok(bookRepository.save(bookToUpdate));
         }).orElseGet(() -> ResponseEntity.notFound().build());
     }
 
+    /* Updates the active/inactive status of a book. Admin-only. */
     @PutMapping("/{id}/status")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Book> updateBookStatus(@PathVariable String id, @RequestBody Map<String, Boolean> status) {
@@ -91,6 +114,7 @@ public class BookController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
+    /* Deletes a book permanently. Admin-only. */
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> deleteBook(@PathVariable String id) {

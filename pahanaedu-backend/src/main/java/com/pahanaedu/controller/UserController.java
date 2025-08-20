@@ -6,15 +6,15 @@ import com.pahanaedu.model.User;
 import com.pahanaedu.repository.OrderRepository;
 import com.pahanaedu.repository.UserRepository;
 import com.pahanaedu.security.services.UserDetailsImpl;
-import com.pahanaedu.security.services.ImageUploadService; // Import ImageUploadService
+import com.pahanaedu.security.services.ImageUploadService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile; // Import MultipartFile
+import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException; // Import IOException
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
@@ -29,7 +29,7 @@ public class UserController {
     private OrderRepository orderRepository;
 
     @Autowired
-    private ImageUploadService imageUploadService; // Inject ImageUploadService
+    private ImageUploadService imageUploadService;
 
     private UserDetailsImpl getCurrentUserDetails() {
         return (UserDetailsImpl) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
@@ -46,8 +46,8 @@ public class UserController {
 
     @PutMapping("/profile")
     @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
-    public ResponseEntity<?> updateUserProfile(@RequestPart("user") User userDetails, // Changed to RequestPart
-            @RequestPart(value = "image", required = false) MultipartFile image) { // Added MultipartFile
+    public ResponseEntity<?> updateUserProfile(@RequestPart("user") User userDetails,
+            @RequestPart(value = "image", required = false) MultipartFile image) {
         String userId = getCurrentUserDetails().getId();
         return userRepository.findById(userId)
                 .map(user -> {
@@ -72,7 +72,6 @@ public class UserController {
                     user.setDefaultPostalCode(userDetails.getDefaultPostalCode());
                     user.setDefaultCountry(userDetails.getDefaultCountry());
 
-                    // Handle profile image update
                     if (image != null && !image.isEmpty()) {
                         try {
                             String imageUrl = imageUploadService.uploadImage(image);
@@ -81,8 +80,6 @@ public class UserController {
                             return ResponseEntity.status(500).body(Map.of("message", "Failed to upload image."));
                         }
                     } else if (userDetails.getProfileImageUrl() != null && userDetails.getProfileImageUrl().isEmpty()) {
-                        // Allows clearing the image if an empty string is sent and no new image is
-                        // uploaded
                         user.setProfileImageUrl(null);
                     }
 

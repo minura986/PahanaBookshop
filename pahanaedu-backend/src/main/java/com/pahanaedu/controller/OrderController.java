@@ -4,7 +4,7 @@ package com.pahanaedu.controller;
 import com.pahanaedu.model.Order;
 import com.pahanaedu.repository.OrderRepository;
 import com.pahanaedu.repository.UserRepository;
-import com.pahanaedu.repository.ReviewRepository; // Import ReviewRepository
+import com.pahanaedu.repository.ReviewRepository;
 import com.pahanaedu.security.services.UserDetailsImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -28,7 +28,7 @@ public class OrderController {
     private UserRepository userRepository;
 
     @Autowired
-    private ReviewRepository reviewRepository; // Inject ReviewRepository
+    private ReviewRepository reviewRepository;
 
     private UserDetailsImpl getCurrentUserDetails() {
         return (UserDetailsImpl) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
