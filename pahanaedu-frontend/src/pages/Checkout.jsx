@@ -7,7 +7,7 @@ import { toast } from 'react-toastify';
 import { useNavigate, Link } from 'react-router-dom';
 import Button from '../components/ui/Button';
 import CouponCard from '../components/profile/CouponCard';
-import GuestCheckoutModal from '../components/GuestCheckoutModal'; // Import the new modal
+import GuestCheckoutModal from '../components/GuestCheckoutModal';
 
 const Checkout = () => {
     const { cartItems, subtotal, isCouponApplied, applyCoupon, clearCart } = useCart();
@@ -29,8 +29,14 @@ const Checkout = () => {
         email: '',
         phoneNumber: ''
     });
+    
+    const [errors, setErrors] = useState({
+        guest: {},
+        shipping: {}
+    });
+    
     const [tieredDiscountMessageShown, setTieredDiscountMessageShown] = useState(false);
-    const [showGuestModal, setShowGuestModal] = useState(false); // State to control the modal
+    const [showGuestModal, setShowGuestModal] = useState(false);
 
     // --- DISCOUNT LOGIC ---
     const canApplyFirstOrderCoupon = user && !user.hasPlacedOrder;
@@ -81,22 +87,96 @@ const Checkout = () => {
     }, [tieredDiscount, tieredDiscountMessageText, tieredDiscountMessageShown]);
 
     useEffect(() => {
-        // Show the modal if the user is not logged in
         if (!user) {
             setShowGuestModal(true);
         }
     }, [user]);
 
+    const validateGuestField = (name, value) => {
+        let error = '';
+        
+        switch (name) {
+            case 'firstName':
+            case 'lastName':
+                if (!value.trim()) error = 'This field is required';
+                break;
+            case 'email':
+                if (!value.trim()) {
+                    error = 'Email is required';
+                } else if (!value.includes('@')) {
+                    error = 'Email must contain @ symbol';
+                }
+                break;
+            case 'phoneNumber':
+                if (!value.trim()) {
+                    error = 'Phone number is required';
+                } else if (!/^07\d{8}$/.test(value)) {
+                    error = 'Phone number must start with 07 and have 10 digits total';
+                }
+                break;
+            default:
+                break;
+        }
+        
+        return error;
+    };
+
+    const validateShippingField = (name, value) => {
+        if (!value.trim()) return 'This field is required';
+        return '';
+    };
 
     const handleShippingAddressChange = (e) => {
-        setShippingAddress({ ...shippingAddress, [e.target.name]: e.target.value });
+        const { name, value } = e.target;
+        setShippingAddress({ ...shippingAddress, [name]: value });
+        
+        const error = validateShippingField(name, value);
+        setErrors(prev => ({
+            ...prev,
+            shipping: { ...prev.shipping, [name]: error }
+        }));
     };
 
     const handleGuestDetailsChange = (e) => {
-        setGuestDetails({ ...guestDetails, [e.target.name]: e.target.value });
+        const { name, value } = e.target;
+        setGuestDetails({ ...guestDetails, [name]: value });
+        
+        const error = validateGuestField(name, value);
+        setErrors(prev => ({
+            ...prev,
+            guest: { ...prev.guest, [name]: error }
+        }));
+    };
+
+    const validateForm = () => {
+        const newErrors = { guest: {}, shipping: {} };
+        
+        if (!user) {
+            Object.keys(guestDetails).forEach(key => {
+                newErrors.guest[key] = validateGuestField(key, guestDetails[key]);
+            });
+        }
+        
+        if (!user || useDifferentAddress) {
+            Object.keys(shippingAddress).forEach(key => {
+                newErrors.shipping[key] = validateShippingField(key, shippingAddress[key]);
+            });
+        }
+        
+        setErrors(newErrors);
+        
+        const hasErrors = Object.values(newErrors.guest).some(error => error) || 
+                         Object.values(newErrors.shipping).some(error => error);
+        
+        return !hasErrors;
     };
 
     const handleCheckout = async () => {
+        if (!validateForm()) {
+            toast.error('Please fix the form errors');
+            return;
+        }
+
         const order = {
             userId: user ? user.id : null,
             firstName: user ? user.firstName : guestDetails.firstName,
@@ -133,8 +213,6 @@ const Checkout = () => {
                 clearCart();
                 navigate(`/order-confirmation/${savedOrder.id}`);
             }
-
-           
         } catch (error) {
             toast.error('Failed to place order.');
             console.error('Checkout error:', error.response?.data || error);
@@ -159,11 +237,23 @@ const Checkout = () => {
                              <div>
                                 <h3 className="text-lg font-semibold mb-3">Guest Information</h3>
                                 <div className="grid grid-cols-2 gap-4">
-                                    <input type="text" name="firstName" placeholder="First Name" value={guestDetails.firstName} onChange={handleGuestDetailsChange} className="w-full px-3 py-2 border rounded" required />
-                                    <input type="text" name="lastName" placeholder="Last Name" value={guestDetails.lastName} onChange={handleGuestDetailsChange} className="w-full px-3 py-2 border rounded" required />
+                                    <div>
+                                        <input type="text" name="firstName" placeholder="First Name" value={guestDetails.firstName} onChange={handleGuestDetailsChange} className="w-full px-3 py-2 border rounded" required />
+                                        {errors.guest.firstName && <p className="text-red-500 text-sm mt-1">{errors.guest.firstName}</p>}
+                                    </div>
+                                    <div>
+                                        <input type="text" name="lastName" placeholder="Last Name" value={guestDetails.lastName} onChange={handleGuestDetailsChange} className="w-full px-3 py-2 border rounded" required />
+                                        {errors.guest.lastName && <p className="text-red-500 text-sm mt-1">{errors.guest.lastName}</p>}
+                                    </div>
                                 </div>
-                                <input type="email" name="email" placeholder="Email" value={guestDetails.email} onChange={handleGuestDetailsChange} className="w-full px-3 py-2 border rounded mt-4" required />
-                                <input type="tel" name="phoneNumber" placeholder="Phone Number" value={guestDetails.phoneNumber} onChange={handleGuestDetailsChange} className="w-full px-3 py-2 border rounded mt-4" required />
+                                <div className="mt-4">
+                                    <input type="email" name="email" placeholder="Email" value={guestDetails.email} onChange={handleGuestDetailsChange} className="w-full px-3 py-2 border rounded" required />
+                                    {errors.guest.email && <p className="text-red-500 text-sm mt-1">{errors.guest.email}</p>}
+                                </div>
+                                <div className="mt-4">
+                                    <input type="tel" name="phoneNumber" placeholder="Phone Number (07XXXXXXX)" value={guestDetails.phoneNumber} onChange={handleGuestDetailsChange} className="w-full px-3 py-2 border rounded" required />
+                                    {errors.guest.phoneNumber && <p className="text-red-500 text-sm mt-1">{errors.guest.phoneNumber}</p>}
+                                </div>
                             </div>
                          )}
 
@@ -186,6 +276,7 @@ const Checkout = () => {
                                  <div className="mb-4">
                                     <label className="block text-gray-700">Address Line 1</label>
                                     <input type="text" name="addressLine1" value={shippingAddress.addressLine1} onChange={handleShippingAddressChange} className="w-full px-3 py-2 border rounded" required />
+                                    {errors.shipping.addressLine1 && <p className="text-red-500 text-sm mt-1">{errors.shipping.addressLine1}</p>}
                                 </div>
                                 <div className="mb-4">
                                     <label className="block text-gray-700">Address Line 2 (Optional)</label>
@@ -194,14 +285,17 @@ const Checkout = () => {
                                 <div className="mb-4">
                                     <label className="block text-gray-700">City</label>
                                     <input type="text" name="city" value={shippingAddress.city} onChange={handleShippingAddressChange} className="w-full px-3 py-2 border rounded" required />
+                                    {errors.shipping.city && <p className="text-red-500 text-sm mt-1">{errors.shipping.city}</p>}
                                 </div>
                                 <div className="mb-4">
                                     <label className="block text-gray-700">Postal Code</label>
                                     <input type="text" name="postalCode" value={shippingAddress.postalCode} onChange={handleShippingAddressChange} className="w-full px-3 py-2 border rounded" required />
+                                    {errors.shipping.postalCode && <p className="text-red-500 text-sm mt-1">{errors.shipping.postalCode}</p>}
                                 </div>
                                 <div className="mb-4">
                                     <label className="block text-gray-700">Country</label>
                                     <input type="text" name="country" value={shippingAddress.country} onChange={handleShippingAddressChange} className="w-full px-3 py-2 border rounded" required />
+                                    {errors.shipping.country && <p className="text-red-500 text-sm mt-1">{errors.shipping.country}</p>}
                                 </div>
                             </div>
                         )}

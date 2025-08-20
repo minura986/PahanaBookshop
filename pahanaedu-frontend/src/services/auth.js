@@ -6,21 +6,22 @@ export const loginUser = async (credentials) => {
     return response.data;
 };
 
-// Modified registerUser to accept an image file
-export const registerUser = async (userData, imageFile) => {
-    const formData = new FormData();
-    formData.append('user', new Blob([JSON.stringify(userData)], { type: 'application/json' }));
-    if (imageFile) {
-        formData.append('image', imageFile);
-    }
+// --- START OF MODIFIED registerUser ---
+// We remove the imageFile parameter and send userData directly as JSON.
+export const registerUser = async (userData) => {
+    // The 'profilePicture' field (which is a File object) cannot be sent as JSON.
+    // We create a new object without it before sending.
+    const { profilePicture, ...dataToSend } = userData;
 
-    const response = await API.post('/auth/signup', formData, {
+    const response = await API.post('/auth/signup', dataToSend, {
         headers: {
-            'Content-Type': 'multipart/form-data',
+            'Content-Type': 'application/json', // Set content type to application/json
         },
     });
     return response.data;
 };
+// --- END OF MODIFIED registerUser ---
+
 
 export const getCurrentUser = async () => {
     const response = await API.get('/user/profile');

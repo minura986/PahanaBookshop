@@ -64,8 +64,6 @@ public class WebSecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-                // **CRITICAL FIX:** This disables the security feature that blocks your POST
-                // request.
                 .csrf(csrf -> csrf.disable())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
                 .authorizeHttpRequests(auth -> auth
@@ -74,6 +72,7 @@ public class WebSecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/books/**").permitAll()
                         .requestMatchers("/api/reviews/book/**").permitAll()
                         .requestMatchers("/api/orders/guest/**").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/orders").permitAll() // <-- ADD THIS LINE
 
                         // --- ADMIN-ONLY ENDPOINTS ---
                         .requestMatchers(HttpMethod.POST, "/api/books").hasRole("ADMIN")

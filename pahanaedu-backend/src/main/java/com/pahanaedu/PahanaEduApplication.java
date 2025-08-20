@@ -2,6 +2,7 @@ package com.pahanaedu;
 
 import com.pahanaedu.model.User;
 import com.pahanaedu.repository.UserRepository;
+import jakarta.servlet.MultipartConfigElement; // Import this
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -16,6 +17,13 @@ public class PahanaEduApplication {
 	public static void main(String[] args) {
 		SpringApplication.run(PahanaEduApplication.class, args);
 	}
+
+	// --- ADD THIS BEAN FOR FILE UPLOADS ---
+	@Bean
+	public MultipartConfigElement multipartConfigElement() {
+		return new MultipartConfigElement("");
+	}
+	// -----------------------------------------
 
 	@Bean
 	CommandLineRunner run(UserRepository userRepository, PasswordEncoder passwordEncoder) {

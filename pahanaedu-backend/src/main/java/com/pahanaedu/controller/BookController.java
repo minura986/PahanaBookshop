@@ -62,12 +62,9 @@ public class BookController {
         if (image != null && !image.isEmpty()) {
             String imageUrl = imageUploadService.uploadImage(image);
             newBook.setImageUrl(imageUrl);
-        } else {
         }
 
-        // Save the newly created and populated book object
         Book savedBook = bookRepository.save(newBook);
-
         return ResponseEntity.ok(savedBook);
     }
 
@@ -124,4 +121,17 @@ public class BookController {
         bookRepository.deleteById(id);
         return ResponseEntity.noContent().build();
     }
+
+    // --- START: ADD THIS NEW ENDPOINT ---
+    /**
+     * Searches for active books by title or author. This is a public endpoint.
+     */
+    @GetMapping("/search")
+    public ResponseEntity<Page<Book>> searchBooks(@RequestParam("query") String query, Pageable pageable) {
+        Page<Book> books = bookRepository
+                .findByTitleContainingIgnoreCaseAndActiveIsTrueOrAuthorContainingIgnoreCaseAndActiveIsTrue(query, query,
+                        pageable);
+        return ResponseEntity.ok(books);
+    }
+    // --- END: ADD THIS NEW ENDPOINT ---
 }
