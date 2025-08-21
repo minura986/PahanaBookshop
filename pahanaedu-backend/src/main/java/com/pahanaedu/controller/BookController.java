@@ -26,13 +26,11 @@ public class BookController {
     @Autowired
     private ImageUploadService imageUploadService;
 
-    /* Gets a paginated list of all active books for public viewing. */
     @GetMapping
     public ResponseEntity<Page<Book>> getAllBooks(Pageable pageable) {
         return ResponseEntity.ok(bookRepository.findByActive(true, pageable));
     }
 
-    /* Gets a single active book by its ID. */
     @GetMapping("/{id}")
     public ResponseEntity<Book> getBookById(@PathVariable String id) {
         Optional<Book> book = bookRepository.findById(id);
@@ -41,23 +39,32 @@ public class BookController {
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
-    /* Creates a new book. This is an admin-only endpoint. */
+    // --- UPDATED createBook Method ---
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<Book> createBook(@RequestPart("book") Book bookDetails,
-            @RequestPart("image") MultipartFile image)
+    public ResponseEntity<Book> createBook(
+            @RequestParam("title") String title,
+            @RequestParam("author") String author,
+            @RequestParam("description") String description,
+            @RequestParam("price") double price,
+            @RequestParam("cost") double cost,
+            @RequestParam("stock") int stock,
+            @RequestParam("category") String category,
+            @RequestParam("subCategory") String subCategory,
+            @RequestParam("active") boolean active,
+            @RequestParam("image") MultipartFile image)
             throws IOException {
-        Book newBook = new Book();
 
-        newBook.setTitle(bookDetails.getTitle());
-        newBook.setAuthor(bookDetails.getAuthor());
-        newBook.setDescription(bookDetails.getDescription());
-        newBook.setPrice(bookDetails.getPrice());
-        newBook.setCost(bookDetails.getCost());
-        newBook.setStock(bookDetails.getStock());
-        newBook.setCategory(bookDetails.getCategory());
-        newBook.setSubCategory(bookDetails.getSubCategory());
-        newBook.setActive(bookDetails.isActive());
+        Book newBook = new Book();
+        newBook.setTitle(title);
+        newBook.setAuthor(author);
+        newBook.setDescription(description);
+        newBook.setPrice(price);
+        newBook.setCost(cost);
+        newBook.setStock(stock);
+        newBook.setCategory(category);
+        newBook.setSubCategory(subCategory);
+        newBook.setActive(active);
 
         if (image != null && !image.isEmpty()) {
             String imageUrl = imageUploadService.uploadImage(image);
@@ -68,21 +75,31 @@ public class BookController {
         return ResponseEntity.ok(savedBook);
     }
 
-    /* Updates an existing book. This is an admin-only endpoint. */
+    // --- UPDATED updateBook Method ---
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<Book> updateBook(@PathVariable String id, @RequestPart("book") Book bookDetails,
-            @RequestPart(value = "image", required = false) MultipartFile image) {
+    public ResponseEntity<Book> updateBook(
+            @PathVariable String id,
+            @RequestParam("title") String title,
+            @RequestParam("author") String author,
+            @RequestParam("description") String description,
+            @RequestParam("price") double price,
+            @RequestParam("cost") double cost,
+            @RequestParam("stock") int stock,
+            @RequestParam("category") String category,
+            @RequestParam("subCategory") String subCategory,
+            @RequestParam("active") boolean active,
+            @RequestParam(value = "image", required = false) MultipartFile image) {
         return bookRepository.findById(id).map(bookToUpdate -> {
-            bookToUpdate.setTitle(bookDetails.getTitle());
-            bookToUpdate.setAuthor(bookDetails.getAuthor());
-            bookToUpdate.setDescription(bookDetails.getDescription());
-            bookToUpdate.setPrice(bookDetails.getPrice());
-            bookToUpdate.setCost(bookDetails.getCost());
-            bookToUpdate.setStock(bookDetails.getStock());
-            bookToUpdate.setCategory(bookDetails.getCategory());
-            bookToUpdate.setSubCategory(bookDetails.getSubCategory());
-            bookToUpdate.setActive(bookDetails.isActive());
+            bookToUpdate.setTitle(title);
+            bookToUpdate.setAuthor(author);
+            bookToUpdate.setDescription(description);
+            bookToUpdate.setPrice(price);
+            bookToUpdate.setCost(cost);
+            bookToUpdate.setStock(stock);
+            bookToUpdate.setCategory(category);
+            bookToUpdate.setSubCategory(subCategory);
+            bookToUpdate.setActive(active);
 
             if (image != null && !image.isEmpty()) {
                 try {
@@ -97,7 +114,6 @@ public class BookController {
         }).orElseGet(() -> ResponseEntity.notFound().build());
     }
 
-    /* Updates the active/inactive status of a book. Admin-only. */
     @PutMapping("/{id}/status")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Book> updateBookStatus(@PathVariable String id, @RequestBody Map<String, Boolean> status) {
@@ -111,7 +127,6 @@ public class BookController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    /* Deletes a book permanently. Admin-only. */
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> deleteBook(@PathVariable String id) {
@@ -122,10 +137,6 @@ public class BookController {
         return ResponseEntity.noContent().build();
     }
 
-    // --- START: ADD THIS NEW ENDPOINT ---
-    /**
-     * Searches for active books by title or author. This is a public endpoint.
-     */
     @GetMapping("/search")
     public ResponseEntity<Page<Book>> searchBooks(@RequestParam("query") String query, Pageable pageable) {
         Page<Book> books = bookRepository
@@ -133,5 +144,4 @@ public class BookController {
                         pageable);
         return ResponseEntity.ok(books);
     }
-    // --- END: ADD THIS NEW ENDPOINT ---
 }
